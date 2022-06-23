@@ -1,50 +1,57 @@
+from natsort import as_ascii
 import torch.nn as nn
 import torch.nn.functional as F
+
+def conv_bn_relu(in_channel, out_channel, kernel_size, stride, padding):
+    conv_layer = nn.Sequential(*[nn.Conv2d(in_channel, out_channel, kernel_size=kernel_size, stride=stride, padding=padding),
+                                 nn.BatchNorm2d(out_channel),
+                                 nn.ReLU()])
+    return conv_layer
 
 class roomnet(nn.Module):
     def __init__(self):
         super(roomnet, self).__init__()
-        self.conv1_1 = conv_bn_relu()
-        self.conv1_2 = conv_bn_relu()
+        self.conv1_1 = conv_bn_relu(3, 64, 3, 1, 1)
+        self.conv1_2 = conv_bn_relu(64, 64, 3, 1, 1)
         
-        self.conv2_1 = conv_bn_relu()
-        self.conv2_2 = conv_bn_relu()
+        self.conv2_1 = conv_bn_relu(64, 128, 3, 1, 1)
+        self.conv2_2 = conv_bn_relu(128, 128, 3, 1, 1)
         
-        self.conv3_1 = conv_bn_relu()
-        self.conv3_2 = conv_bn_relu()
-        self.conv3_3 = conv_bn_relu()
+        self.conv3_1 = conv_bn_relu(128, 256, 3, 1, 1)
+        self.conv3_2 = conv_bn_relu(256, 256, 3, 1, 1)
+        self.conv3_3 = conv_bn_relu(256, 256, 3, 1, 1)
         
-        self.conv4_1 = conv_bn_relu()
-        self.conv4_2 = conv_bn_relu()
-        self.conv4_3 = conv_bn_relu()
+        self.conv4_1 = conv_bn_relu(256, 512, 3, 1, 1)
+        self.conv4_2 = conv_bn_relu(512, 512, 3, 1, 1)
+        self.conv4_3 = conv_bn_relu(512, 512, 3, 1, 1)
         
-        self.conv5_1 = conv_bn_relu()
-        self.conv5_2 = conv_bn_relu()
-        self.conv5_3 = conv_bn_relu()
+        self.conv5_1 = conv_bn_relu(512, 512, 3, 1, 1)
+        self.conv5_2 = conv_bn_relu(512, 512, 3, 1, 1)
+        self.conv5_3 = conv_bn_relu(512, 512, 3, 1, 1)
         
-        self.conv6_1 = conv_bn_relu()
-        self.conv6_2 = conv_bn_relu()
-        self.conv6_3 = conv_bn_relu()
+        self.conv6_1 = conv_bn_relu(512, 512, 3, 1, 1)
+        self.conv6_2 = conv_bn_relu(512, 512, 3, 1, 1)
+        self.conv6_3 = conv_bn_relu(512, 512, 3, 1, 1)
         
-        self.conv7_1 = conv_bn_relu()
-        self.conv7_2 = conv_bn_relu()
-        self.conv7_3 = conv_bn_relu()
+        self.conv7_1 = conv_bn_relu(512, 512, 3, 1, 1)
+        self.conv7_2 = conv_bn_relu(512, 512, 3, 1, 1)
+        self.conv7_3 = conv_bn_relu(512, 256, 3, 1, 1)
         
-        self.conv8_1 = conv_bn_relu()
-        self.conv8_2 = conv_bn_relu()
+        self.conv8_1 = conv_bn_relu(256, 64, 1, 1, 0)
+        self.conv8_2 = conv_bn_relu(64, 48, 1, 1, 0)
         
         
-        self.dropout3 = nn.Dropout2d()
-        self.dropout4 = nn.Dropout2d()
-        self.dropout5 = nn.Dropout2d()
-        self.dropout6 = nn.Dropout2d()
+        self.dropout3 = nn.Dropout2d(p=0.5)
+        self.dropout4 = nn.Dropout2d(p=0.5)
+        self.dropout5 = nn.Dropout2d(p=0.5)
+        self.dropout6 = nn.Dropout2d(p=0.5)
         
-        self.fc1 = nn.Linear()
-        self.fc2 = nn.Linear()
-        self.fc3 = nn.Linear()
+        self.fc1 = nn.Linear(512 * 10 * 10, 1024)
+        self.fc2 = nn.Linear(1024, 512)
+        self.fc3 = nn.Linear(512, 11)
         
         self.sigmoid = nn.Sigmoid()
-        self.flatten = nn.Flatten(dim=-1)
+        self.flatten = nn.Flatten()
         
         self.maxpool = nn.MaxPool2d(2, stride=2, return_indices=True)
         self.maxunpool = nn.MaxUnpool2d(2, stride=2)
@@ -53,7 +60,7 @@ class roomnet(nn.Module):
     
     
     def he_initialization(self):
-        # He initialization
+        # TODO: He initialization
         pass
         
         
@@ -71,13 +78,13 @@ class roomnet(nn.Module):
         x = self.conv3_2(x)
         x = self.conv3_3(x)
         x, _ = self.maxpool(x)
-        x = self.droppout3(x)        
+        x = self.dropout3(x)        
 
         x = self.conv4_1(x)
         x = self.conv4_2(x)
         x = self.conv4_3(x)
         x, index_4 = self.maxpool(x)
-        x = self.droppout4(x)  
+        x = self.dropout4(x)  
         
         x = self.conv5_1(x)
         x = self.conv5_2(x)
@@ -86,7 +93,7 @@ class roomnet(nn.Module):
         
         
         # Keypoint Decoding
-        x_key = self.droppout5(x_break)
+        x_key = self.dropout5(x_break)
         
         x_key = self.maxunpool(x_key, index_5)
         x_key = self.conv6_1(x_key)

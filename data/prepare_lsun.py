@@ -1,11 +1,9 @@
 # Reference : https://github.com/GitBoSun/roomnet/blob/master/roomnet/prepare_data.py
 import os
 import numpy as np
-import zlib
-import cPickle as pickle
 import cv2
 import scipy.io as sio
-import scipy.misc as smc
+import argparse
 
 def guassian_2d(x_mean, y_mean, dev=5.0):
 	x, y = np.meshgrid(np.arange(out_s), np.arange(out_s))
@@ -16,16 +14,25 @@ def guassian_2d(x_mean, y_mean, dev=5.0):
 
   
 if __name__=='__main__':
-    TRAIN = True
-    im_path='/home/mcg/Data/LSUN/data/images'
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument('--train_type', type=str, default='train')
+    args = parser.parse_args()
+ 
+    if args.train_type == 'train':
+        TRAIN = True
+    else:
+        TRAIN = False
     
     if TRAIN:
-        mat='/home/mcg/Data/LSUN/data/training.mat'
-        outpath='/home/mcg/Data/LSUN/data/training_data'
+        im_path='/home/dataset/LSUN/images/train'
+        mat='/home/dataset/LSUN/training.mat'
+        outpath='/home/dataset/LSUN/processed/train'
         stage = 'training'
+    
     else:
-        mat='/home/mcg/Data/LSUN/data/validation.mat'
-        outpath='/home/mcg/Data/LSUN/data/validation_data'
+        im_path='/home/dataset/LSUN/images/val'
+        mat='/home/dataset/LSUN/validation.mat'
+        outpath='/home/dataset/LSUN/processed/validation'
         stage = 'validation'
         
         
@@ -46,12 +53,12 @@ if __name__=='__main__':
     flip_idx[9]=[2,1]
     flip_idx[10]=[1,2]
     
-    os.makedirs(outpath, exist_ok=True)
+    os.makedirs(os.path.join(outpath, 'flip0'), exist_ok=True)
+    os.makedirs(os.path.join(outpath, 'flip1'), exist_ok=True)
+    
     data = sio.loadmat(mat)
     data=data[stage][0]
-    j=0
     for item in data:
-        j=j+1
         name=item[0][0]
         ltype=item[2][0][0]
         pts=item[3]
@@ -60,9 +67,12 @@ if __name__=='__main__':
         im=cv2.imread(os.path.join(im_path, name+'.jpg'))
         im=cv2.resize(im, (s,s), interpolation = cv2.INTER_CUBIC)
         
-        class_label=np.zeros(11)
-        class_label[ltype]=1.0
-        layout=np.zeros((out_s, out_s, 48))
+        class_label = ltype
+        
+        layout=np.zeros((48, out_s, out_s))
+        mask_forward = np.zeros((48, out_s, out_s))
+        mask_backward = np.zeros((48, out_s, out_s))
+        
         for i, pt in enumerate(pts):
             x_mean=int(pt[0]*(40.0/w))
             y_mean=int(pt[1]*(40.0/h))
@@ -72,19 +82,32 @@ if __name__=='__main__':
             if y_mean==40:
                 y_mean=39
 
-            layout[:,:,l_list[ltype]+flip_idx[ltype][i]-1]=guassian_2d(x_mean, y_mean)
-   
-        np.savez(os.path.join(outpath, '%s.npz'%(name)), im=im, lay=layout, label=class_label)
+            gaussian_pts = guassian_2d(x_mean, y_mean)
+            layout[l_list[ltype]+flip_idx[ltype][i]-1, :, :]= gaussian_pts
+            mask_forward[l_list[ltype]+flip_idx[ltype][i]-1, :, :] = (gaussian_pts > 0.7).astype('float')
+            mask_backward[l_list[ltype]+flip_idx[ltype][i]-1, :, :] = (gaussian_pts < 0.7).astype('float')
+            
+        np.savez(os.path.join(outpath, 'flip0', '%s.npz'%(name)), im=im, lay=layout, label=class_label, mask_forward=mask_forward, mask_backward=mask_backward)
   	
-    im = cv2.flip(im, 1)
-    for i, pt in enumerate(pts):
-        x_mean = int(pt[0] * (40.0 / w))
-        y_mean = int(pt[1] * (40.0 / h))
-        if x_mean == 40:
-            x_mean = 39
-        if y_mean == 40:
-            y_mean = 39
+        im = cv2.flip(im, 1)
         
-        x_mean = 39 - x_mean 
-        layout[:, :, l_list[ltype] + flip_idx[ltype][i] - 1] = guassian_2d(x_mean, y_mean)
-    np.savez(os.path.join(outpath, '%s2.npz' % (name)), im=im, lay=layout, label=class_label)
+        layout=np.zeros((48, out_s, out_s))
+        mask_forward = np.zeros((48, out_s, out_s))
+        mask_backward = np.zeros((48, out_s, out_s))
+        
+        for i, pt in enumerate(pts):
+            x_mean = int(pt[0] * (40.0 / w))
+            y_mean = int(pt[1] * (40.0 / h))
+            if x_mean == 40:
+                x_mean = 39
+            if y_mean == 40:
+                y_mean = 39
+            
+            x_mean = 39 - x_mean 
+            
+            gaussian_pts = guassian_2d(x_mean, y_mean)
+            layout[l_list[ltype]+flip_idx[ltype][i]-1, :, :]= gaussian_pts
+            mask_forward[l_list[ltype]+flip_idx[ltype][i]-1, :, :] = (gaussian_pts > 0.7).astype('float')
+            mask_backward[l_list[ltype]+flip_idx[ltype][i]-1, :, :] = (gaussian_pts < 0.7).astype('float')
+            
+        np.savez(os.path.join(outpath, 'flip1', '%s.npz' % (name)), im=im, lay=layout, label=class_label,  mask_forward=mask_forward, mask_backward=mask_backward)
