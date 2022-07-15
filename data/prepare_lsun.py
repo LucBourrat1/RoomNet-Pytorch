@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 import scipy.io as sio
 import argparse
+from tqdm import tqdm
 
 def guassian_2d(x_mean, y_mean, dev=5.0):
 	x, y = np.meshgrid(np.arange(out_s), np.arange(out_s))
@@ -24,15 +25,15 @@ if __name__=='__main__':
         TRAIN = False
     
     if TRAIN:
-        im_path='/home/dataset/LSUN/images/train'
-        mat='/home/dataset/LSUN/training.mat'
-        outpath='/home/dataset/LSUN/processed/train'
+        im_path='/home/luc/ext_data/datasets/lsun/train/image'
+        mat='/home/luc/ext_data/datasets/lsun/training.mat'
+        outpath='/home/luc/models/RoomNet-Pytorch/data/processed/train'
         stage = 'training'
     
     else:
-        im_path='/home/dataset/LSUN/images/val'
-        mat='/home/dataset/LSUN/validation.mat'
-        outpath='/home/dataset/LSUN/processed/validation'
+        im_path='/home/luc/ext_data/datasets/lsun/val/image'
+        mat='/home/luc/ext_data/datasets/lsun/validation.mat'
+        outpath='/home/luc/models/RoomNet-Pytorch/data/processed/validation'
         stage = 'validation'
         
         
@@ -58,13 +59,16 @@ if __name__=='__main__':
     
     data = sio.loadmat(mat)
     data=data[stage][0]
-    for item in data:
+    idx = 0
+    for item in tqdm(data):
+        idx += 1
         name=item[0][0]
         ltype=item[2][0][0]
         pts=item[3]
         
         h,w=item[4][0]
-        im=cv2.imread(os.path.join(im_path, name+'.jpg'))
+        #im=cv2.imread(os.path.join(im_path, name+'.jpg'))
+        im=cv2.imread(os.path.join(im_path, f"{str(idx).zfill(4)}.jpg"))
         im=cv2.resize(im, (s,s), interpolation = cv2.INTER_CUBIC)
         
         class_label = ltype
