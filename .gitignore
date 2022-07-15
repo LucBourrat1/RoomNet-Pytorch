@@ -139,4 +139,4 @@ launch.json
 *.pth
 
 # tensorboard run files
-run/
+runs/
