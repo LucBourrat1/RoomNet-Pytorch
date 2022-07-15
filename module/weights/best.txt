@@ -1,0 +1,3 @@
+Best model for epoch 15 with:
+val loss =  3.7071e-01
+val accuracy =  4.2386e+01

@@ -134,3 +134,9 @@ dmypy.json
 # launch.json
 launch.json
 .vscode/
+
+# model weights
+*.pth
+
+# tensorboard run files
+run/
