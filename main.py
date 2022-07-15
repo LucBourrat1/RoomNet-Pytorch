@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
-import torchvision
+import time
 
 
 def test_model(test_loader, model, crit):
@@ -82,6 +82,7 @@ def run(args):
 
     # Forward
     for epoch in range(args.total_epoch):
+        start = time.time()
         # Train
         model.train()
         print(f"EPOCH: {epoch}")
@@ -150,6 +151,10 @@ def run(args):
 
         # Reduce LR    
         scheduler.step()
+
+        # return compute time for the epoch
+        stop = time.time()
+        print(f"time for epoch {epoch}: {(stop - start)//60: 2.0f} min {(stop - start)%60: 2.0f} s")
 
     tb.close()
 

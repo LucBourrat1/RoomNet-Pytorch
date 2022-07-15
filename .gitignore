@@ -130,3 +130,6 @@ dmypy.json
 
 # npz files
 *.npz
+
+# launch.json
+launch.json
