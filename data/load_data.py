@@ -45,8 +45,10 @@ class LSUN_dset(Dataset):
             data_L = dict(np.load(data_path_L))
             data_R = dict(np.load(data_path_R))
             
-            img_L = data_L['im']            
+            img_L = data_L['im']
+            im_notr = img_L       
             img_L = self.transform(img_L)
+            name = data_path_L
             
             img_R = data_R['im']            
             img_R = self.transform(img_R)
@@ -62,7 +64,7 @@ class LSUN_dset(Dataset):
             mask_R_f = torch.tensor(data_R['mask_forward']).float()
             mask_R_b = torch.tensor(data_R['mask_backward']).float()
             
-            return img_L, lay_L, mask_L_f, mask_L_b, img_R, lay_R, mask_R_f, mask_R_b, label
+            return img_L, lay_L, mask_L_f, mask_L_b, img_R, lay_R, mask_R_f, mask_R_b, label, name, im_notr
 
 
 def load_LSUN(args):

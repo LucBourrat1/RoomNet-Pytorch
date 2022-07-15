@@ -12,7 +12,6 @@ def guassian_2d(x_mean, y_mean, dev=5.0):
 	z=np.exp(-((x-x_mean)**2+ (y-y_mean)**2)/(2.0*dev**2))
 	return z
 
-
   
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='')
@@ -25,15 +24,15 @@ if __name__=='__main__':
         TRAIN = False
     
     if TRAIN:
-        im_path='/home/luc/ext_data/datasets/lsun/train/image'
-        mat='/home/luc/ext_data/datasets/lsun/training.mat'
-        outpath='/home/luc/models/RoomNet-Pytorch/data/processed/train'
+        im_path='/home/luc/drive/datasets/lsun/train/image'
+        mat='/home/luc/drive/datasets/lsun/training.mat'
+        outpath='/home/luc/Dev/RoomNet-Pytorch/data/processed/train'
         stage = 'training'
     
     else:
-        im_path='/home/luc/ext_data/datasets/lsun/val/image'
-        mat='/home/luc/ext_data/datasets/lsun/validation.mat'
-        outpath='/home/luc/models/RoomNet-Pytorch/data/processed/validation'
+        im_path='/home/luc/drive/datasets/lsun/val/image'
+        mat='/home/luc/drive/datasets/lsun/validation.mat'
+        outpath='/home/luc/Dev/RoomNet-Pytorch/data/processed/validation'
         stage = 'validation'
         
         

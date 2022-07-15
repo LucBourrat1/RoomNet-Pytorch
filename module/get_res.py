@@ -22,7 +22,9 @@ def guassian_2d(x_mean, y_mean, dev=2.0):
   z=np.exp(-((x-x_mean)**2+ (y-y_mean)**2)/(2.0*dev**2))
   return z
 
-def get_im(ims, layout,label,j):
+def get_im(ims, layout, label, j):
+    layout = layout.permute(1,2,0).detach().numpy()
+    ims = ims.numpy()
     lay=layout[:,:,l_list[label]:l_list[label+1]]
     num=lay.shape[2]
     outim=np.zeros((40,40,3))
@@ -83,8 +85,7 @@ def get_im(ims, layout,label,j):
       cv2.line(outim, pt[0], pt[1], (255,0,0), l)
 #    outim=np.array(outim, np.float32)
     outim=cv2.resize(outim, (320,320))
-    ims=np.array(ims*255, np.uint8)
-    res=cv2.addWeighted(ims, 0.5, outim, 0.5, 0) 
+    res=cv2.addWeighted(ims, 0.5, outim, 0.7, 0) 
 
     return res
 
