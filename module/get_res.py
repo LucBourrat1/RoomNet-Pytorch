@@ -22,9 +22,14 @@ def guassian_2d(x_mean, y_mean, dev=2.0):
   z=np.exp(-((x-x_mean)**2+ (y-y_mean)**2)/(2.0*dev**2))
   return z
 
-def get_im(ims, layout, label, j):
-    layout = layout.permute(1,2,0).detach().numpy()
-    ims = ims.numpy()
+def get_im(ims, layout, label):
+  # postprocess the image
+    mean=[0.5, 0.5, 0.5]
+    std=[0.5, 0.5, 0.5]
+    for i in range(3):
+      ims[i,:,:] = ims[i,:,:] * std[i] + mean[i]
+    ims = (ims * 255.).permute(1,2,0).to("cpu").numpy().astype(np.uint8)
+    layout = layout.permute(1,2,0).to("cpu").detach().numpy()
     lay=layout[:,:,l_list[label]:l_list[label+1]]
     num=lay.shape[2]
     outim=np.zeros((40,40,3))

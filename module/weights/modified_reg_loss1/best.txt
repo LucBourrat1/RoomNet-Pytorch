@@ -1,0 +1,3 @@
+Best model for epoch 142 with:
+val loss =  7.9087e+00
+val accuracy =  6.2929e+01

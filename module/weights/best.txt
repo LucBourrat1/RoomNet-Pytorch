@@ -1,3 +1,0 @@
-Best model for epoch 68 with:
-val loss =  2.9871e-01
-val accuracy =  5.8122e+01

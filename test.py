@@ -12,13 +12,13 @@ from tqdm import tqdm
 
 
 def test(args):
-  outdir=os.path.join(args.out_path, 'test')
-  model_dir=os.path.join(args.weights_dir, 'best.pth')
+  outdir = os.path.join(args.out_path, 'test')
+  model_dir = args.weights_dir
   if not os.path.exists(outdir):
     os.makedirs(outdir)
 
   # initiate the model and load checkpoint
-  device = "cpu"
+  device = "cuda"
   model = roomnet()
   model.load_state_dict(torch.load(model_dir))
   model = model.to(device)
@@ -34,7 +34,7 @@ def test(args):
   idx = 0
   for data in tqdm(val_loader):
     start = time.time()
-    x, lay_gt, label_gt, name, im_notr = data[0].to(device), data[1].to(device), data[8].to(device), data[9], data[10].to(device)
+    x, lay_gt, label_gt, name, im_notr = data[0].to(device), data[1].to(device), data[8].to(device), data[9], data[10]
 
     # Forward pass input to get model outputs
     pred_class, pred_lay = model(x)
@@ -59,10 +59,10 @@ def test(args):
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='')
-  parser.add_argument('--out_path', type=str, default='/home/luc/Dev/RoomNet-Pytorch/output')
-  parser.add_argument('--weights_dir', type=str, default='/home/luc/Dev/RoomNet-Pytorch/module/weights')
+  parser.add_argument('--out_path', type=str, default='/home/luc/models/RoomNet-Pytorch/output')
+  parser.add_argument('--weights_dir', type=str, default='/home/luc/models/RoomNet-Pytorch/module/weights/Jul16_10-20-49/weights.pth')
   parser.add_argument('--batch_size', type=int, default=20)
-  parser.add_argument('--data_root', type=str, default='/home/luc/Dev/RoomNet-Pytorch/data/processed')
+  parser.add_argument('--data_root', type=str, default='/home/luc/models/RoomNet-Pytorch/data/processed')
 
 
   parser.add_argument('--total_epoch', type=int, default=225)
@@ -70,15 +70,3 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   test(args)
-  
-  # batch_size=20
-  # s_in=320
-  # s_out=40
-  # max_epoch=225
-  # l_list=[0,8,14,20,24,28,34,38,42,44,46, 48]
-
-  # datapath='/home/mcg/Data/LSUN/data'
-  # datadir='/home/luc/models/roomnet/training_data'
-  # val_datadir='/home/luc/models/roomnet/validation_data'
-
-  # test()

@@ -24,15 +24,15 @@ if __name__=='__main__':
         TRAIN = False
     
     if TRAIN:
-        im_path='/home/luc/drive/datasets/lsun/train/image'
-        mat='/home/luc/drive/datasets/lsun/training.mat'
-        outpath='/home/luc/Dev/RoomNet-Pytorch/data/processed/train'
+        im_path='/home/luc/ext_data/datasets/lsun/train/image'
+        mat='/home/luc/ext_data/datasets/lsun/training.mat'
+        outpath='/home/luc/models/RoomNet-Pytorch/data/processed/train'
         stage = 'training'
     
     else:
-        im_path='/home/luc/drive/datasets/lsun/val/image'
-        mat='/home/luc/drive/datasets/lsun/validation.mat'
-        outpath='/home/luc/Dev/RoomNet-Pytorch/data/processed/validation'
+        im_path='/home/luc/ext_data/datasets/lsun/val/image'
+        mat='/home/luc/ext_data/datasets/lsun/validation.mat'
+        outpath='/home/luc/models/RoomNet-Pytorch/data/processed/validation'
         stage = 'validation'
         
         
@@ -90,7 +90,7 @@ if __name__=='__main__':
             mask_forward[l_list[ltype]+flip_idx[ltype][i]-1, :, :] = (gaussian_pts > 0.7).astype('float')
             mask_backward[l_list[ltype]+flip_idx[ltype][i]-1, :, :] = (gaussian_pts < 0.7).astype('float')
             
-        np.savez(os.path.join(outpath, 'flip0', '%s.npz'%(name)), im=im, lay=layout, label=class_label, mask_forward=mask_forward, mask_backward=mask_backward)
+        np.savez(os.path.join(outpath, 'flip0', f"{str(idx).zfill(4)}.npz"), im=im, lay=layout, label=class_label, mask_forward=mask_forward, mask_backward=mask_backward)
   	
         im = cv2.flip(im, 1)
         
@@ -113,4 +113,4 @@ if __name__=='__main__':
             mask_forward[l_list[ltype]+flip_idx[ltype][i]-1, :, :] = (gaussian_pts > 0.7).astype('float')
             mask_backward[l_list[ltype]+flip_idx[ltype][i]-1, :, :] = (gaussian_pts < 0.7).astype('float')
             
-        np.savez(os.path.join(outpath, 'flip1', '%s.npz' % (name)), im=im, lay=layout, label=class_label,  mask_forward=mask_forward, mask_backward=mask_backward)
+        np.savez(os.path.join(outpath, 'flip1', f"{str(idx).zfill(4)}.npz"), im=im, lay=layout, label=class_label,  mask_forward=mask_forward, mask_backward=mask_backward)

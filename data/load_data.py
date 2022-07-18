@@ -30,13 +30,15 @@ class LSUN_dset(Dataset):
             data = dict(np.load(data_path))
 
             img = data['im']
+            im_notr = img
             img = self.transform(img)
+            name = data_path
             
             lay = torch.tensor(data['lay']).float()
             label = torch.tensor(data['label']).long()
             mask_f = torch.tensor(data['mask_forward']).float()
             mask_b = torch.tensor(data['mask_backward']).float()
-            return img, lay, mask_f, mask_b, label
+            return img, lay, mask_f, mask_b, label, name, im_notr
             
         else:
             data_path_L = data_path
@@ -82,11 +84,11 @@ def load_LSUN(args):
 
     
 if __name__=='__main__':
-    root = '/home/dataset/LSUN/processed/train'
+    root = '/home/luc/models/RoomNet-Pytorch/data/processed/train'
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
     ])
     
-    dset = LSUN_dset(root, transform, train=False)
+    dset = LSUN_dset(root, transform, train=True)
     dset.__getitem__(1)
