@@ -37,6 +37,7 @@ def get_model(args):
 
 @torch.no_grad()
 def test_model(test_loader, model, crit_cls, crit_reg):
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     model.eval()
 
     # Compute Accuracy
@@ -111,7 +112,7 @@ def run(args):
     model, optimizer, scheduler, criterion_cls, criterion_reg = get_model(args) 
 
     # tensorboard
-    tb = SummaryWriter(log_dir="runs/modified_reg_loss1")
+    tb = SummaryWriter(log_dir="runs/only_reg_loss")
     
     # Forward
     for epoch in range(args.total_epoch):
@@ -152,7 +153,8 @@ def run(args):
                 layout, out_key, label, mask_f,mask_b, criterion_reg
                 )
             total_reg.append(loss_reg.item())
-            loss = loss_cls * 5 + loss_reg
+            #loss = loss_cls * 5 + loss_reg
+            loss = + loss_reg
             total_loss.append(loss.item())
            
             # Step
@@ -196,7 +198,7 @@ def run(args):
 
         # Save weights if better than actual best one or if epoch == 1
         if epoch == 0:
-            torch.save(model.state_dict(), "/content/data/weights/best.pth")
+            torch.save(model.state_dict(), os.path.join(args. save_pth, "best.pth"))
             best_loss = val_loss
             with open("/content/data/weights/best.txt", "w") as f:
                 f.write(f"Best model for epoch {epoch} with:\n")
@@ -204,7 +206,7 @@ def run(args):
                 f.write(f"val accuracy = {val_acc: 0.4e}\n")
 
         if val_loss < best_loss:
-            torch.save(model.state_dict(), "/content/data/weights/best.pth")
+            torch.save(model.state_dict(), os.path.join(args. save_pth, "best.pth"))
             with open("/content/data/weights/best.txt", "w") as f:
                 f.write(f"Best model for epoch {epoch} with:\n")
                 f.write(f"val loss = {val_loss: 0.4e}\n")
@@ -227,6 +229,7 @@ def run(args):
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('--data_root', type=str, default='/home/luc/models/RoomNet-Pytorch/data/processed')
+    parser.add_argument('--save_pth', type=str, default='/home/luc/models/RoomNet-Pytorch/module/weights')
     parser.add_argument('--lr', type=float, default=0.00001)
     parser.add_argument('--batch_size', type=int, default=20)
     parser.add_argument('--total_epoch', type=int, default=225)

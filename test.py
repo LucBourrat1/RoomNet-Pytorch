@@ -1,4 +1,3 @@
-from unittest import result
 import torch
 import numpy as np
 import os
@@ -10,17 +9,24 @@ from torch.utils.data import DataLoader
 from data.load_data import load_LSUN
 from tqdm import tqdm
 
+def post_process_img(img):
+  mean=[0.5, 0.5, 0.5]
+  std=[0.5, 0.5, 0.5]
+  for i in range(3):
+    img[i,:,:] = img[i,:,:] * std[i] + mean[i]
+  img = (img * 255.).permute(1,2,0).to("cpu").numpy().astype(np.uint8)
+  return img
 
 def test(args):
-  outdir = os.path.join(args.out_path, 'test')
-  model_dir = args.weights_dir
+  device = "cuda" if torch.cuda.is_available() else "cpu"
+  outdir=os.path.join(args.out_path, 'test')
+
   if not os.path.exists(outdir):
     os.makedirs(outdir)
 
   # initiate the model and load checkpoint
-  device = "cuda"
   model = roomnet()
-  model.load_state_dict(torch.load(model_dir))
+  model.load_state_dict(torch.load(args.weights_dir))
   model = model.to(device)
   model.eval()
 
@@ -34,20 +40,20 @@ def test(args):
   idx = 0
   for data in tqdm(val_loader):
     start = time.time()
-    x, lay_gt, label_gt, name, im_notr = data[0].to(device), data[1].to(device), data[8].to(device), data[9], data[10]
+    im, lay_gt, label_gt = data[0].to(device), data[1].to(device), data[8].to(device)
 
     # Forward pass input to get model outputs
-    pred_class, pred_lay = model(x)
+    pred_class, pred_lay = model(im)
     c_out = torch.argmax(pred_class, axis=1)
     acc = (c_out == label_gt).sum()/label_gt.shape[0]
     fout.write(f"{idx} {acc}\n")
 
     # For each image in batch, output image, gt_layout and pred_layout
-    for j in range(args.batch_size):
-      img = im_notr[j]
-      outim_pred = get_im(img, pred_lay[j], c_out[j], str(j))
-      outim_gt = get_im(img, lay_gt[j], label_gt[j], str(j))
-      result_img = np.hstack((img, outim_gt, outim_pred))
+    for j in range(im.shape[0]):
+      img_processed = post_process_img(im[j])
+      outim_pred = get_im(im[j], pred_lay[j], c_out[j])
+      outim_gt = get_im(im[j], lay_gt[j], label_gt[j])
+      result_img = np.hstack((img_processed, outim_gt, outim_pred))
       cv2.imwrite(os.path.join(outdir, f"{str(idx*args.batch_size+j+1).zfill(4)}.jpg"), result_img)
 
     idx += 1
@@ -60,13 +66,9 @@ def test(args):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='')
   parser.add_argument('--out_path', type=str, default='/home/luc/models/RoomNet-Pytorch/output')
-  parser.add_argument('--weights_dir', type=str, default='/home/luc/models/RoomNet-Pytorch/module/weights/Jul16_10-20-49/weights.pth')
+  parser.add_argument('--weights_dir', type=str, default='/home/luc/models/RoomNet-Pytorch/module/weights/modified_reg_loss1/weights.pth')
   parser.add_argument('--batch_size', type=int, default=20)
   parser.add_argument('--data_root', type=str, default='/home/luc/models/RoomNet-Pytorch/data/processed')
-
-
-  parser.add_argument('--total_epoch', type=int, default=225)
-  parser.add_argument('--gpu', type=str, default='3')
   args = parser.parse_args()
 
   test(args)
